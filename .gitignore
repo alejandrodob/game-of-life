@@ -14,3 +14,4 @@ out/*
 !out/game_of_life.min.js
 out-dev/
 index_dev.html
+node_modules/
