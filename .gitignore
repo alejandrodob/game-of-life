@@ -10,5 +10,7 @@ pom.xml.asc
 .lein-plugins/
 .lein-failures
 .nrepl-port
-out/
-out-adv/
+out/*
+!out/game_of_life.min.js
+out-dev/
+index_dev.html
