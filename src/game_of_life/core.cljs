@@ -16,7 +16,7 @@
 (def world-height 50)
 (def canvas-width (.-width canvas))
 (def canvas-height (.-height canvas))
-(def cell-size 10)
+(def cell-size (min (/ canvas-width world-width) (/ canvas-height world-height)))
 (def colors ["#E16889"
              "#FE853E"
              "#6EC59B"
