@@ -59,19 +59,18 @@
           :when (lives-next-gen? [x y] living-cells)]
       [x y])))
 
-(defn paint-cell [cell alive?]
+(defn paint-cell [cell]
   (let [[x y] cell
-        color (if alive? "#FE853E" "white")]
+        color "#FE853E"]
     (do
       (set! (.-fillStyle canvas-ctx) color)
       (.fillRect canvas-ctx (* cell-size x) (* cell-size y) (dec cell-size) (dec cell-size)))))
 
 (defn paint-cells [living-cells]
-  ;; mejorar esto, en lugar de pintar TODAS las cells, pintar todo el canvas de blanco y luego colorear sólo las vivas
-  (dotimes [x world-width]
-    (dotimes [y world-height]
-      (let [alive? (contains? living-cells [x y])]
-        (paint-cell [x y] alive?)))))
+  (set! (.-fillStyle canvas-ctx) "white")
+  (.fillRect canvas-ctx 0 0 canvas-width canvas-height)
+  (doseq [cell living-cells]
+    (paint-cell cell)))
 
 (defn main-loop [world-state]
   (js/setInterval
