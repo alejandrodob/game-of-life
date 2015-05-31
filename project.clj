@@ -20,8 +20,8 @@
               :source-paths ["src"]
               :compiler {
                 :main game-of-life.core
-                :output-to "out/game_of_life.js"
-                :output-dir "out"
+                :output-to "out-dev/game_of_life.js"
+                :output-dir "out-dev"
                 :optimizations :none
                 :cache-analysis true
                 :source-map true}}
@@ -29,7 +29,7 @@
               :source-paths ["src"]
               :compiler {
                 :main game-of-life.core
-                :output-to "out-adv/game_of_life.min.js"
-                :output-dir "out-adv"
+                :output-to "out/game_of_life.min.js"
+                :output-dir "out"
                 :optimizations :advanced
                 :pretty-print false}}]})
