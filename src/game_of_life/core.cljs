@@ -3,12 +3,12 @@
     (:require [clojure.set :as set-ops]
               [goog.dom :as dom]
               [goog.events :as events]
-              [cljs.core.async :refer [put! chan <!]]
-              [cljs.core.async :refer [chan put! take! timeout] :as async]))
+              [cljs.core.async :as async :refer [put! chan <! >! timeout]]))
 
 
 (enable-console-print!)
 
+(def step-interval 200)
 (def create-btn (dom/getElement "create"))
 (def canvas (dom/getElement "grid"))
 (def canvas-ctx (.getContext canvas "2d"))
@@ -73,22 +73,26 @@
       (let [alive? (contains? living-cells [x y])]
         (paint-cell [x y] alive?)))))
 
-
-(def initial-state (generate-random-living-cells 0.5))
-(def world-state (atom initial-state))
-
 (defn main-loop [world-state]
   (js/setInterval
     #(let [current-state @world-state]
       (do
         (paint-cells current-state)
         (reset! world-state (next-generation current-state))))
-    500))
+    step-interval))
 
-(main-loop world-state)
+(defn async-loop [initial-state]
+  (let [state-chan (chan 2)]
+    (put! state-chan initial-state)
+    (go (while true
+          (let [current-state (<! state-chan)]
+            (paint-cells current-state)
+            (>! state-chan (next-generation current-state))
+            (<! (timeout step-interval)))))))
 
-;;(paint-cells initial-state)
-;;(println (count initial-state))
-;;(println (count (next-generation initial-state)))
-;;(paint-cells (next-generation initial-state))
-;;(js/setTimeout #(paint-cells (next-generation initial-state)) 1000)
+
+(def initial-state (generate-random-living-cells 0.5))
+(def world-state (atom initial-state))
+;;(main-loop world-state)
+
+(async-loop initial-state)
