@@ -80,18 +80,24 @@
         (reset! world-state (next-generation current-state))))
     step-interval))
 
+(defn next-state-chan [current-state]
+  (let [out (chan)]
+    (put! out (next-generation current-state))
+    out))
+
 (defn async-loop [initial-state]
-  (let [state-chan (chan 2)]
-    (put! state-chan initial-state)
-    (go (while true
-          (let [current-state (<! state-chan)]
-            (paint-cells current-state)
-            (>! state-chan (next-generation current-state))
-            (<! (timeout step-interval)))))))
+  (let [initial-chan (chan)]
+    (put! initial-chan initial-state)
+    (go
+      (loop [state-chan initial-chan]
+        (let [current-state (<! state-chan)]
+          (paint-cells current-state)
+          (<! (timeout step-interval))
+          (recur (next-state-chan current-state)))))))
 
 
 (def initial-state (generate-random-living-cells 0.5))
+(async-loop initial-state)
+
 (def world-state (atom initial-state))
 ;;(main-loop world-state)
-
-(async-loop initial-state)
