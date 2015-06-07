@@ -35,22 +35,21 @@
           :when (< (rand) probability)]
       [x y])))
 
-(defn neighbours [cell]
-  (let [[x y] cell]
-    (set
-      (for [i [-1 0 1]
-            j [-1 0 1]
-            :when (not= 0 i j)]
-        [(+ x i) (+ y j)]))))
+(defn neighbours [[x y]]
+  (set
+    (for [i [-1 0 1]
+          j [-1 0 1]
+          :when (not= 0 i j)]
+      [(+ x i) (+ y j)])))
 
 (defn alive-neighbours [cell living-cells]
   (set-ops/intersection (neighbours cell) living-cells))
 
 (defn lives-next-gen? [cell living-cells]
-  (let [neighbour-count (count (alive-neighbours cell living-cells))]
+  (let [neighbours-count (count (alive-neighbours cell living-cells))]
     (or
-      (and (contains? living-cells cell) (contains? #{2, 3} neighbour-count))
-      (and (not (contains? living-cells cell)) (= neighbour-count 3)))))
+      (and (contains? living-cells cell) (contains? #{2, 3} neighbours-count))
+      (and (not (contains? living-cells cell)) (= neighbours-count 3)))))
 
 (defn next-generation [living-cells]
   (set
@@ -59,9 +58,8 @@
           :when (lives-next-gen? [x y] living-cells)]
       [x y])))
 
-(defn paint-cell [cell]
-  (let [[x y] cell
-        color "#FE853E"]
+(defn paint-cell [[x y]]
+  (let [color "#FE853E"]
     (do
       (set! (.-fillStyle canvas-ctx) color)
       (.fillRect canvas-ctx (* cell-size x) (* cell-size y) (dec cell-size) (dec cell-size)))))
