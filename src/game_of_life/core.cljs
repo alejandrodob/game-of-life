@@ -9,11 +9,14 @@
 (enable-console-print!)
 
 (def step-interval 200)
-(def create-btn (dom/getElement "create"))
+(def start-btn (dom/getElement "start"))
+(def step-btn (dom/getElement "step"))
+(def pause-btn (dom/getElement "pause"))
 (def canvas (dom/getElement "grid"))
 (def canvas-ctx (.getContext canvas "2d"))
 (def world-width 50)
 (def world-height 50)
+(def life-probability 0.5)
 (def canvas-width (.-width canvas))
 (def canvas-height (.-height canvas))
 (def cell-size (min (/ canvas-width world-width) (/ canvas-height world-height)))
@@ -83,19 +86,46 @@
     (put! out (next-generation current-state))
     out))
 
-(defn async-loop [initial-state]
-  (let [initial-chan (chan)]
-    (put! initial-chan initial-state)
-    (go
-      (loop [state-chan initial-chan]
-        (let [current-state (<! state-chan)]
-          (paint-cells current-state)
-          (<! (timeout step-interval))
-          (recur (next-state-chan current-state)))))))
+(defn async-loop [world-state]
+  (go
+    (while true
+      (let [current-state (<! @world-state)]
+        (paint-cells current-state)
+        (reset! world-state (next-state-chan current-state))
+        (<! (timeout step-interval))))))
 
+(defn listen [el type]
+  (let [c (chan)]
+    (events/listen el type #(put! c %))
+    c))
 
-(def initial-state (generate-random-living-cells 0.5))
-(async-loop initial-state)
+(defn listen-to-click [element]
+  (listen element "click"))
 
-(def world-state (atom initial-state))
+(def initial-state (generate-random-living-cells life-probability))
+;;(async-loop initial-state)
+
+(def world-state (atom (chan)))
 ;;(main-loop world-state)
+(go
+  (>! @world-state initial-state))
+
+(go
+  (while true
+    (<! (listen-to-click pause-btn))
+    (let [state-chan @world-state
+          current-state (<! state-chan)]
+      (<! (listen-to-click pause-btn))
+      (>! state-chan current-state))))
+
+(go
+  (while true
+    (<! (listen-to-click start-btn))
+    (async-loop world-state)))
+
+(go
+  (while true
+    (<! (listen-to-click step-btn))
+    (let [current-state (<! @world-state)]
+      (paint-cells current-state)
+      (reset! world-state (next-state-chan current-state)))))
