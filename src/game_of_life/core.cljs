@@ -9,9 +9,9 @@
 (enable-console-print!)
 
 (def step-interval 200)
-(def start-btn (dom/getElement "start"))
-(def step-btn (dom/getElement "step"))
 (def pause-btn (dom/getElement "pause"))
+(def step-btn (dom/getElement "step"))
+(def reset-btn (dom/getElement "reset"))
 (def canvas (dom/getElement "grid"))
 (def canvas-ctx (.getContext canvas "2d"))
 (def world-width 50)
@@ -73,15 +73,18 @@
   (doseq [cell living-cells]
     (paint-cell cell)))
 
-(defn async-loop [world-state app-state]
+(defn do-step [world-state]
+  (let [current-state @world-state]
+      (paint-cells current-state)
+      (reset! world-state (next-generation current-state))))
+
+(defn main-loop [world-state app-state]
   (go
     (while true
-      (let [current-state @world-state]
-        (<! @app-state)
-        (paint-cells current-state)
-        (reset! world-state (next-generation current-state))
-        (>! @app-state "running")
-        (<! (timeout step-interval))))))
+      (<! @app-state)
+      (do-step world-state)
+      (>! @app-state "running")
+      (<! (timeout step-interval)))))
 
 (defn listen [el type]
   (let [c (chan)]
@@ -96,24 +99,27 @@
 (def app-state (atom (chan 1)))
 
 (go
-  (>! @app-state "running"))
-
-(go
   (while true
     (<! (listen-to-click pause-btn))
-    (let [state-chan @app-state
-          current-state (<! state-chan)]
+    (let [state-chan @app-state]
+      (<! state-chan)
       (<! (listen-to-click pause-btn))
-      (>! state-chan current-state))))
-
-(go
-  (while true
-    (<! (listen-to-click start-btn))
-    (async-loop world-state app-state)))
+      (>! state-chan "running"))))
 
 (go
   (while true
     (<! (listen-to-click step-btn))
-    (let [current-state @world-state]
-      (paint-cells current-state)
-      (reset! world-state (next-generation current-state)))))
+    (do-step world-state)))
+
+(go
+  (while true
+    (<! (listen-to-click reset-btn))
+    (reset! world-state initial-state)
+    (do-step world-state)))
+
+(defn init [app-state]
+  (go
+    (>! @app-state "running"))
+  (main-loop world-state app-state))
+
+(init app-state)
