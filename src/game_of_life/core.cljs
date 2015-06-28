@@ -73,25 +73,14 @@
   (doseq [cell living-cells]
     (paint-cell cell)))
 
-(defn main-loop [world-state]
-  (js/setInterval
-    #(let [current-state @world-state]
-      (do
-        (paint-cells current-state)
-        (reset! world-state (next-generation current-state))))
-    step-interval))
-
-(defn next-state-chan [current-state]
-  (let [out (chan)]
-    (put! out (next-generation current-state))
-    out))
-
-(defn async-loop [world-state]
+(defn async-loop [world-state app-state]
   (go
     (while true
-      (let [current-state (<! @world-state)]
+      (let [current-state @world-state]
+        (<! @app-state)
         (paint-cells current-state)
-        (reset! world-state (next-state-chan current-state))
+        (reset! world-state (next-generation current-state))
+        (>! @app-state "running")
         (<! (timeout step-interval))))))
 
 (defn listen [el type]
@@ -103,17 +92,16 @@
   (listen element "click"))
 
 (def initial-state (generate-random-living-cells life-probability))
-;;(async-loop initial-state)
+(def world-state (atom initial-state))
+(def app-state (atom (chan 1)))
 
-(def world-state (atom (chan)))
-;;(main-loop world-state)
 (go
-  (>! @world-state initial-state))
+  (>! @app-state "running"))
 
 (go
   (while true
     (<! (listen-to-click pause-btn))
-    (let [state-chan @world-state
+    (let [state-chan @app-state
           current-state (<! state-chan)]
       (<! (listen-to-click pause-btn))
       (>! state-chan current-state))))
@@ -121,11 +109,11 @@
 (go
   (while true
     (<! (listen-to-click start-btn))
-    (async-loop world-state)))
+    (async-loop world-state app-state)))
 
 (go
   (while true
     (<! (listen-to-click step-btn))
-    (let [current-state (<! @world-state)]
+    (let [current-state @world-state]
       (paint-cells current-state)
-      (reset! world-state (next-state-chan current-state)))))
+      (reset! world-state (next-generation current-state)))))
