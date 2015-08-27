@@ -20,16 +20,7 @@
 (def canvas-width (.-width canvas))
 (def canvas-height (.-height canvas))
 (def cell-size (min (/ canvas-width world-width) (/ canvas-height world-height)))
-(def colors ["#E16889"
-             "#FE853E"
-             "#6EC59B"
-             "#FDBA52"
-             "#F5DED0"
-             "#94614C"
-             "#2D97D3"
-             "#48C3CB"
-             "#A9A6D3"
-             "#C0C1BC"])
+(def orange "#FE853E")
 
 (defn generate-random-living-cells [probability]
   (set
@@ -62,7 +53,7 @@
       [x y])))
 
 (defn paint-cell [[x y]]
-  (let [color "#FE853E"]
+  (let [color orange]
     (do
       (set! (.-fillStyle canvas-ctx) color)
       (.fillRect canvas-ctx (* cell-size x) (* cell-size y) (dec cell-size) (dec cell-size)))))
