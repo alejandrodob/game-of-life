@@ -8,7 +8,7 @@
 
 (enable-console-print!)
 
-(def step-interval 100)
+(def step-interval 200)
 (def pause-btn (dom/getElement "pause"))
 (def step-btn (dom/getElement "step"))
 (def reset-btn (dom/getElement "reset"))
@@ -82,7 +82,7 @@
     (while true
       (<! @app-state)
       (do-step world-state)
-      (>! @app-state "running")
+      (>! @app-state :running)
       (<! (timeout step-interval)))))
 
 (defn listen [el type]
@@ -103,7 +103,7 @@
     (let [state-chan @app-state]
       (<! state-chan)
       (<! (listen-to-click pause-btn))
-      (>! state-chan "running"))))
+      (>! state-chan :running))))
 
 (go
   (while true
@@ -125,7 +125,7 @@
 
 (defn init [app-state]
   (go
-    (>! @app-state "running"))
+    (>! @app-state :running))
   (main-loop world-state app-state))
 
 (init app-state)
