@@ -8,7 +8,7 @@
 
 (enable-console-print!)
 
-(def step-interval 200)
+(def step-interval 100)
 (def pause-btn (dom/getElement "pause"))
 (def step-btn (dom/getElement "step"))
 (def reset-btn (dom/getElement "reset"))
