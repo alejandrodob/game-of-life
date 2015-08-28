@@ -6,6 +6,5 @@ Demo here: http://alejandrodob.github.io/game-of-life/
 
 
 ## TODO
-- Adding arbitrary living cells clicking on canvas.
 - Custom color picker.
-
+- History (step forward too)
