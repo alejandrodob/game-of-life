@@ -8,7 +8,7 @@
 
 (enable-console-print!)
 
-(def step-interval 200)
+(def step-interval 100)
 (def pause-btn (dom/getElement "pause"))
 (def step-btn (dom/getElement "step"))
 (def reset-btn (dom/getElement "reset"))
@@ -64,6 +64,14 @@
   (doseq [cell living-cells]
     (paint-cell cell)))
 
+(defn calculate-cell-from-pixel-coords [[x y]]
+  (let [coords [(quot x cell-size) (quot y cell-size)]]
+    coords))
+
+(defn create-life-on-cell [cell world-state]
+  (paint-cell cell)
+  (reset! world-state (set-ops/union @world-state #{cell})))
+
 (defn do-step [world-state]
   (let [current-state @world-state]
       (paint-cells current-state)
@@ -107,6 +115,13 @@
     (<! (listen-to-click reset-btn))
     (reset! world-state initial-state)
     (do-step world-state)))
+
+(go
+  (while true
+    (let [click-evt (<! (listen-to-click canvas))]
+      (let [[x y] [(.-offsetX click-evt) (.-offsetY click-evt)]]
+        (let [cell (calculate-cell-from-pixel-coords [x y])]
+          (create-life-on-cell cell world-state))))))
 
 (defn init [app-state]
   (go
