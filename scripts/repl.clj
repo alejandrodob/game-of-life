@@ -5,5 +5,5 @@
 (repl/repl* (node/repl-env)
   {:output-dir "out"
    :optimizations :none
-   :cache-analysis true                
+   :cache-analysis true
    :source-map true})
